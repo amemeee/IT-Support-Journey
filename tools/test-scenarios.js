@@ -23,7 +23,7 @@ vm.createContext(ctx);
 files.forEach(f => vm.runInContext(fs.readFileSync(path.join(root, f), 'utf8'), ctx, { filename: f }));
 
 const clone = o => JSON.parse(JSON.stringify(o));
-const newWorld = () => ({ users: clone(ctx.DIRECTORY), hosts: clone(ctx.HOSTS), mail: clone(ctx.MAIL || {}), traced: [], outage: false });
+const newWorld = () => ({ users: clone(ctx.DIRECTORY), hosts: clone(ctx.HOSTS), mail: clone(ctx.MAIL || {}), devices: clone(ctx.DEVICES || {}), traced: [], outage: false });
 
 const PRIORITIES = ['P1', 'P2', 'P3', 'P4'];
 const ANSWER_KEYS = ['error', 'when', 'restart', 'computer', 'others', 'verify'];
@@ -40,12 +40,15 @@ for (const sc of ctx.SCENARIOS) {
   need(PRIORITIES.includes(sc.priority), `bad priority ${sc.priority}`);
   need(ctx.DIRECTORY[sc.user], `unknown user ${sc.user}`);
   (sc.targets || []).forEach(t => need(ctx.DIRECTORY[t], `unknown target ${t}`));
-  if (sc.host) need(ctx.HOSTS[sc.host], `unknown host ${sc.host}`);
+  if (sc.host) need(ctx.HOSTS[sc.host] || (ctx.DEVICES && ctx.DEVICES[sc.host]), `unknown host/device ${sc.host}`);
   need(kbIds.has(sc.kb), `unknown KB article ${sc.kb}`);
   Object.keys(sc.answers || {}).forEach(k => need(ANSWER_KEYS.includes(k), `unknown answer key ${k}`));
   (sc.relevant || []).forEach(k => need(sc.answers && sc.answers[k], `relevant question "${k}" has no answer`));
   if (sc.escalate) need(ctx.TEAMS.includes(sc.escalate), `unknown team ${sc.escalate}`);
   if (sc.reveal) need(sc.reveal.key && sc.reveal.text, 'reveal needs key and text');
+  Object.entries(sc.answers || {}).forEach(([k, v]) => need(typeof v === 'string' || typeof v === 'function', `answer "${k}" must be text or a function`));
+  Object.entries(sc.forbid || {}).forEach(([k, v]) => need(v && v.label && v.pts < 0, `forbid "${k}" needs a label and negative pts`));
+  if (sc.bonus) need(typeof sc.bonus.check === 'function' && sc.bonus.label && sc.bonus.pts > 0, 'bonus needs check(), label and positive pts');
 
   try {
     const w = newWorld();
@@ -61,6 +64,8 @@ for (const sc of ctx.SCENARIOS) {
         need(sc.check(w), 'still broken after solve()');
       }
     }
+    if (sc.bonus) sc.bonus.check(w); // must not throw
+    Object.values(sc.answers || {}).forEach(v => { if (typeof v === 'function') need(typeof v(w) === 'string', 'answer function must return text'); });
   } catch (e) {
     errs.push('threw: ' + e.message);
   }

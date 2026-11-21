@@ -13,16 +13,19 @@ It's plain HTML, CSS and JavaScript, with no build step and no backend. Open `in
   - **Remote**: services, disk cleanup, Outlook profile rebuild, and a Software Center that enforces license policy.
   - **KB**: short articles, including PDPA-aware identity checks and a BM phrasebook.
   - **Mail**: mailboxes, shared mailboxes and lists, quarantine, message trace.
+  - **Devices**: compliance, BitLocker keys, updates, drivers, USB policy, lock, isolate and wipe.
   - **CCTV**: connect to the NVR for a live guard-post monitor and PoE power-cycling.
-- Prefer typing? The Terminal also takes PowerShell-style admin commands: `help ad` (Get-ADUser, Unlock-ADAccount, Add-ADGroupMember…) and `help mail` (Get-Mailbox, Get-InboxRule, Get-MessageTrace, Release-QuarantineMessage…). They do exactly what the buttons do.
+- Prefer typing? The Terminal also takes PowerShell-style admin commands: `help ad` (Get-ADUser, Unlock-ADAccount, Add-ADGroupMember…) and `help mail` (Get-Mailbox, Get-InboxRule, Get-MessageTrace, Release-QuarantineMessage…) and `help devices` (Get-Device, Get-BitLockerRecoveryKey, w32tm). They do exactly what the buttons do.
 - Three modes: **Standard** (SLA timers), **Training** (no clock, free hints) and **Expert** (no question buttons, no hints, no greyed-out buttons or warning dots, +25% points).
 - **Resolve or escalate** each ticket (Security / Infrastructure / Desktop L2), then get a points breakdown, CSAT stars and a lesson.
 - Earn XP across shifts (saved in `localStorage`) and climb from Trainee to IT Support Lead.
 
-## Scenarios (34)
+## Scenarios (49)
 **Core:** account lockout after Raya leave · expired password while WFH · shared-drive access · stuck print spooler · APIPA/DHCP · stale DNS cache · LHDN e-Invoice phishing · Outlook crash · software licensing · email outage · new-hire onboarding · disk full · fake "Dato'" social engineering · MFA reset · teh tarik spill · expat VPN access · MFA fatigue attack · CCTV camera offline (NVR + PoE) · CCTV footage request (PDPA).
 
 **Email & Microsoft 365** (`js/scenarios/email.js`): mailbox full · shared mailbox access · missing from a distribution list · invoice stuck in quarantine · hidden inbox rule (compromised mailbox) · bounced email (typo) · calendar permissions · Send As · out-of-office for a colleague · Touch 'n Go PIN scam · intern without a licence · attachment too big · removing old access · courier scam release request · payroll file sent to all-staff (PDPA breach).
+
+**Device management** (`js/scenarios/devices.js`): BitLocker recovery (verify, match the Key ID) · colleague asking for someone else's key · laptop left in a Grab (lock, don't wipe) · stolen laptop (approved wipe) · USB blocked (no approval) · approved USB exception · Windows Update stuck · firewall turned off · blue screen after a driver update · swollen battery · ransomware (isolate, escalate) · clock out of sync (`w32tm /resync`) · new laptop not assigned · encryption off · lost personal phone (wipe work data only).
 
 Link straight to one scenario with `sim.html?s=<id>` (e.g. `sim.html?s=socialeng`).
 

@@ -165,7 +165,7 @@
   /* ------------------------------ world -------------------------------- */
   // fresh copy of everything a shift can change
   function newWorld() {
-    return { users: clone(window.DIRECTORY), hosts: clone(window.HOSTS), mail: clone(window.MAIL || {}), traced: [], outage: false };
+    return { users: clone(window.DIRECTORY), hosts: clone(window.HOSTS), mail: clone(window.MAIL || {}), devices: clone(window.DEVICES || {}), traced: [], outage: false };
   }
 
   /* ------------------------------ shift lifecycle ---------------------- */
@@ -181,7 +181,8 @@
     S.nextSpawn = 8;
     $('#queueList').innerHTML = '';
     S.mailUser = null; S.mailQ = ''; S.traceQ = ''; S.traceOpen = null;
-    renderTicket(); renderDirectory(); renderRemote(); renderMail(); termReset(); renderHUD();
+    S.devSel = null; S.devQ = '';
+    renderTicket(); renderDirectory(); renderRemote(); renderMail(); renderDevices(); termReset(); renderHUD();
     spawn(); setTimeout(spawn, 1200);
     clearInterval(S.timer);
     S.timer = setInterval(tick, 1000);
@@ -209,7 +210,7 @@
     if (!S.deck.length) return;
     const sc = S.deck.shift();
     sc.setup(S.world);
-    renderMail(); // setup may add quarantine / trace entries
+    renderMail(); renderDevices(); // setup may change mail or device state
     const t = {
       id: 'INC-' + (++S.seq), sc, status: 'open', created: S.elapsed,
       slaTotal: SLA[sc.priority], slaLeft: SLA[sc.priority], breached: false,
@@ -323,7 +324,10 @@
     $('#logBtn').addEventListener('click', () => $('#activity').classList.toggle('hidden'));
     $('#closeBtn').addEventListener('click', () => openClose(t));
     const qc = $('#quickConnect');
-    if (qc) qc.addEventListener('click', () => { switchTab('remote'); connect(t.sc.host); });
+    if (qc) qc.addEventListener('click', () => {
+      if (S.world.hosts[t.sc.host]) { switchTab('remote'); connect(t.sc.host); }
+      else { S.devSel = t.sc.host; S.devQ = ''; switchTab('devices'); renderDevices(); }
+    });
   }
 
   function chatBubble(m) {
@@ -375,7 +379,7 @@
       if (sc.escalate) return "Still the same… are you passing this to another team?";
       return sc.check(S.world) ? 'Eh, it works now! Terima kasih banyak-banyak 🙏' : 'Hmm, still the same problem leh.';
     }
-    if (key && sc.answers[key]) return sc.answers[key];
+    if (key && sc.answers[key]) return typeof sc.answers[key] === 'function' ? sc.answers[key](S.world) : sc.answers[key];
     if (key === 'verify') return 'Sure, it\'s ' + S.world.users[sc.user].empId + '.';
     return ["Sorry ah, I'm not very technical — what do you need me to do?", 'Hmm, not sure. Can you ask in a simpler way?', 'Erm… I don\'t know. Is that important?'][Math.floor(Math.random() * 3)];
   }
@@ -405,7 +409,7 @@
     const mine = user && targetsOf(t.sc).includes(user);
     if (user && !mine) {
       const otherOpen = S.tickets.some(o => o.status === 'open' && targetsOf(o.sc).includes(user));
-      if (!otherOpen) addFlag(t, 'wrong-' + user, `Changed an unrelated account (${S.world.users[user].name})`, -40);
+      if (!otherOpen) addFlag(t, 'wrong-' + user, `Acted on someone outside this ticket (${S.world.users[user].name})`, -40);
     }
     if (sensitive && mine) {
       if (t.sc.verifyFails) addFlag(t, 'compromised', 'Gave access to an unverified caller — account takeover!', -150);
@@ -413,6 +417,7 @@
     }
     if (harmful) addFlag(t, harmful.key, harmful.label, harmful.pts);
     if (t.sc.avoid && t.sc.avoid[kind] && mine) addFlag(t, 'avoid-' + kind, t.sc.avoid[kind].label, t.sc.avoid[kind].pts);
+    if (t.sc.forbid && t.sc.forbid[kind]) addFlag(t, 'forbid-' + kind, t.sc.forbid[kind].label, t.sc.forbid[kind].pts);
   }
 
   /* ------------------------------ tabs --------------------------------- */
@@ -1125,11 +1130,37 @@
       const held = Q.filter(q => q.state === 'held');
       termPrint(held.length ? [pad('Identity', 11) + ' ' + pad('Type', 26) + ' Subject', '-'.repeat(70), ...held.map(q => pad(q.id, 11) + ' ' + pad(q.reason, 26) + ' ' + q.subject)] : ['(quarantine is empty)']);
     },
+    'get-device'(p) {
+      const n = String(p.named.devicename || p.named.identity || p.pos[0] || '').toUpperCase();
+      if (!n) {
+        termPrint([pad('DeviceName', 13) + ' ' + pad('Owner', 24) + ' ' + pad('Type', 8) + ' Compliant', '-'.repeat(58),
+          ...Object.values(S.world.devices).map(d => pad(d.name, 13) + ' ' + pad(ownerName(d), 24) + ' ' + pad(d.type, 8) + ' ' + TF(!devIssues(d).length))]);
+        return;
+      }
+      const d = S.world.devices[n]; if (!d) throw new Error(`Device '${n}' not found.`);
+      const iss = devIssues(d);
+      termPrint([`DeviceName  : ${d.name}`, `Owner       : ${ownerName(d)}`, `Model       : ${d.model}`, `Ownership   : ${d.ownership}`, `OS          : ${d.os}`,
+        `Compliant   : ${TF(!iss.length)}${iss.length ? ' (' + iss.join(', ') + ')' : ''}`, `Encrypted   : ${TF(d.encrypted)}`, `KeyId       : ${d.keyId || ''}`,
+        `Update      : ${d.update}`, `USB storage : ${d.usb}`, `LastSync    : ${d.lastSync}`], iss.length ? 'warn' : '');
+    },
+    'get-bitlockerrecoverykey'(p) {
+      const n = String(p.named.devicename || p.named.identity || p.pos[0] || '').toUpperCase();
+      if (!S.world.devices[n]) throw new Error(`Device '${n}' not found. Usage: Get-BitLockerRecoveryKey -DeviceName <name>`);
+      ps(OPS.devRevealKey(n));
+    },
     'release-quarantinemessage': p => ps(OPS.qRelease(String(p.named.identity || p.pos[0] || ''))),
     'delete-quarantinemessage': p => ps(OPS.qDelete(String(p.named.identity || p.pos[0] || '')))
   };
 
   const ADMIN_HELP = {
+    devices: [
+      'Devices',
+      '  Get-Device [<name>]                         list devices, or details for one',
+      '  Get-BitLockerRecoveryKey -DeviceName <name>  sensitive: verify the owner first',
+      '  w32tm /query /status                        clock offset on the connected PC',
+      '  w32tm /resync                               resync the clock (connect first)',
+      'Lock, wipe, isolate, USB and updates are in the Devices tab.'
+    ],
     ad: [
       'Active Directory',
       '  Get-ADUser <user>                     account status',
@@ -1168,7 +1199,7 @@
     await sleep(250);
     try { await fn(parseArgs(line)); }
     catch (e) { termPrint([`${line.split(/\s+/)[0]} : ${e.message}`], 'bad'); }
-    renderDirectory(); renderMail();
+    renderDirectory(); renderMail(); renderDevices();
   }
 
   async function runCmd(raw) {
@@ -1183,7 +1214,7 @@
     const where = S.session ? S.session.host : LOCAL;
     const user = h ? h.owner : null;
 
-    if (c === 'help' && (a === 'ad' || a === 'mail')) { termPrint(ADMIN_HELP[a], 'muted'); return; }
+    if (c === 'help' && ADMIN_HELP[a]) { termPrint(ADMIN_HELP[a], 'muted'); return; }
     if (Object.prototype.hasOwnProperty.call(ADMIN, c)) { await runAdmin(c, line); return; }
 
     switch (c) {
@@ -1206,7 +1237,8 @@
           'cls                   clear screen',
           '',
           'help ad               Active Directory commands (Get-ADUser, Unlock-ADAccount, …)',
-          'help mail             Exchange Online commands (Get-Mailbox, Get-InboxRule, …)'
+          'help mail             Exchange Online commands (Get-Mailbox, Get-InboxRule, …)',
+          'help devices          device commands (Get-Device, Get-BitLockerRecoveryKey, w32tm)'
         ], 'muted'); break;
       case 'cls': case 'clear': $('#termOut').innerHTML = ''; break;
       case 'connect': if (!args[0]) termPrint(['Usage: connect <hostname>'], 'warn'); else { termPrint(['Connecting…'], 'muted'); await sleep(700); if (!connect(args[0])) termPrint([`Host ${args[0]} not found.`], 'bad'); } break;
@@ -1294,6 +1326,17 @@
       case 'systeminfo': await termSlow(['Loading…'], 'muted', 500); termPrint([`Host Name:      ${where}`, `OS Name:        ${h ? h.os : 'Windows 11 Enterprise'}`, `Domain:         ${D}`, `Time Zone:      (UTC+08:00) Kuala Lumpur, Singapore`, `Disk C: used:   ${h ? h.disk : 41}%`]); break;
       case 'gpupdate': await termSlow(['Updating policy…', '', 'Computer Policy update has completed successfully.', 'User Policy update has completed successfully.'], '', 500); if (h) act('gpupdate', `gpupdate /force on ${where}`, { user }); break;
       case 'shutdown': if (h) { termPrint(['Use the Restart PC button in Remote.'], 'muted'); } else termPrint(['That would restart your own PC. Connect to a user host first.'], 'warn'); break;
+      case 'w32tm': {
+        const skew = h ? (h.clockSkew || 0) : 0;
+        if (a === '/resync' || a === '/resync /force') {
+          await termSlow(['Sending resync command to local computer...'], 'muted', 700);
+          if (h && skew) { h.clockSkew = 0; act('timesync', `Resynced the clock on ${where} (was ${skew} min off)`, { user }); }
+          termPrint(['The command completed successfully.'], 'ok');
+        } else if (a.startsWith('/query')) {
+          termPrint([`Source: dc01.${D}`, `Last Successful Sync Time: ${skew ? '3 days ago' : 'a few minutes ago'}`, `Phase Offset: ${skew ? '-' + skew * 60 + '.0000000s' : '0.0004215s'}`], skew ? 'warn' : '');
+        } else termPrint(['Usage: w32tm /query /status   |   w32tm /resync'], 'warn');
+        break;
+      }
       default: termPrint([`'${c0}' is not recognized as an internal or external command. Type "help".`], 'bad');
     }
   }
@@ -1327,6 +1370,7 @@
       if (rel) lines.push([`Asked the right questions (${rel})`, rel * 5]);
       if (timed() && !t.breached) { const b = Math.round(30 * t.slaLeft / t.slaTotal); if (b > 0) lines.push(['Speed bonus', b]); }
       if (action === 'resolve' && t.asked.has('retry')) lines.push(['Confirmed the fix with the user', 10]);
+      if (sc.bonus && sc.bonus.check(S.world)) lines.push([sc.bonus.label, sc.bonus.pts]);
     }
     if (note.trim().length >= 20) lines.push(['Clear resolution notes', 10]);
     else lines.push(['Missing / thin ticket notes', -5]);
@@ -1438,6 +1482,179 @@
   /* ------------------------------ modals ------------------------------- */
   function showModal(sel) { $(sel).classList.add('show'); }
   function hideModal(sel) { $(sel).classList.remove('show'); }
+
+  /* ------------------------------ devices ------------------------------ */
+  const devIssues = d => (window.deviceIssues ? window.deviceIssues(d) : []);
+  const ownerName = d => (d.owner ? uname(d.owner) : 'Unassigned');
+
+  Object.assign(OPS, {
+    devSync(n) {
+      const d = S.world.devices[n];
+      if (d.wiped) return fail(`${n} has been wiped and no longer checks in.`);
+      d.lastSync = 'Just now';
+      act('devSync', `Synced ${n}`, { user: d.owner });
+      return okr(`${n} synced. Compliance: ${devIssues(d).length ? 'not compliant' : 'compliant'}.`);
+    },
+    devEncrypt(n) {
+      const d = S.world.devices[n];
+      if (d.encrypted) return fail(`${n} is already encrypted.`);
+      d.encrypted = true;
+      act('encrypt', `Started BitLocker encryption on ${n}`, { user: d.owner });
+      return okr(`BitLocker started on ${n}. It encrypts in the background.`);
+    },
+    devRevealKey(n) {
+      const d = S.world.devices[n];
+      if (!d.key) return fail(`${n} has no BitLocker key (not a Windows PC).`);
+      d.keyRevealed = true;
+      act('revealKey', `Viewed BitLocker recovery key for ${n} (Key ID ${d.keyId})`, { user: d.owner, sensitive: true });
+      return okr(`Recovery key for ${n} (Key ID ${d.keyId}): ${d.key}`);
+    },
+    devFirewall(n) {
+      const d = S.world.devices[n];
+      if (d.firewall) return fail(`The firewall on ${n} is already on.`);
+      d.firewall = true;
+      act('firewall', `Turned the firewall back on for ${n}`, { user: d.owner });
+      return okr(`Firewall turned on for ${n}.`);
+    },
+    devUpdate(n) {
+      const d = S.world.devices[n];
+      if (d.update === 'Up to date') return fail(`${n} is already up to date.`);
+      d.update = 'Up to date';
+      act('updateRetry', `Cleared the update cache and retried updates on ${n}`, { user: d.owner });
+      return okr(`Update cache cleared on ${n}. Updates installed successfully.`);
+    },
+    devRollback(n) {
+      const d = S.world.devices[n];
+      if (!d.driver) return fail(`No recent driver update to roll back on ${n}.`);
+      d.driver = null;
+      act('rollback', `Rolled back the graphics driver on ${n}`, { user: d.owner });
+      return okr(`Rolled back to the previous graphics driver on ${n}.`);
+    },
+    devUsb(n, allow) {
+      const d = S.world.devices[n];
+      const v = allow ? 'Allowed (temporary)' : 'Blocked';
+      if (d.usb === v) return fail(`USB storage on ${n} is already ${v.toLowerCase()}.`);
+      d.usb = v;
+      act(allow ? 'usbAllow' : 'usbBlock', `${allow ? 'Allowed' : 'Blocked'} USB storage on ${n}`, { user: d.owner });
+      return okr(`USB storage on ${n}: ${v}.`);
+    },
+    devLock(n) {
+      const d = S.world.devices[n];
+      if (d.locked) return fail(`${n} is already locked.`);
+      d.locked = true;
+      act('lock', `Remote-locked ${n}`, { user: d.owner });
+      return okr(`Lock command sent to ${n}. It locks the next time it's online.`);
+    },
+    devLost(n) {
+      const d = S.world.devices[n];
+      if (d.lost) return fail(`${n} is already marked lost.`);
+      d.lost = true;
+      act('lost', `Marked ${n} as lost`, { user: d.owner });
+      return okr(`${n} marked as lost.`);
+    },
+    devIsolate(n) {
+      const d = S.world.devices[n];
+      if (d.isolated) return fail(`${n} is already isolated.`);
+      d.isolated = true;
+      act('isolate', `Isolated ${n} from the network`, { user: d.owner });
+      return okr(`${n} is cut off from the network. Only the management agent can reach it.`);
+    },
+    devWipe(n, mode) {
+      const d = S.world.devices[n];
+      if (d.wiped) return fail(`${n} was already wiped.`);
+      d.wiped = mode;
+      const personalFull = mode === 'full' && d.ownership === 'Personal';
+      act(mode === 'full' ? 'wipe' : 'selectiveWipe', `${mode === 'full' ? 'Full wipe' : 'Selective wipe (work data only)'} sent to ${n}`, {
+        user: d.owner, harmful: personalFull ? { key: 'pwipe-' + n, label: "Fully wiped an employee's personal phone", pts: -80 } : null
+      });
+      return okr(mode === 'full' ? `Full wipe sent to ${n}. Everything on it will be erased.` : `Work profile and company data removed from ${n}. Personal data untouched.`);
+    },
+    devAssign(n, k) {
+      const d = S.world.devices[n];
+      if (d.owner === k) return fail(`${n} is already assigned to ${uname(k)}.`);
+      d.owner = k;
+      act('assign', `Assigned ${n} to ${k}`, { user: k });
+      return okr(`${n} assigned to ${uname(k)}. Setup can continue after a restart.`);
+    }
+  });
+
+  function devRun(r) { toast(esc(r.msg), r.ok ? 'good' : 'warn'); beep('click'); renderDevices(); }
+
+  function renderDevices() {
+    const root = $('#devBody');
+    if (!root || !S.world || !S.world.devices) return;
+    const q = (S.devQ || '').toLowerCase().trim();
+    const list = Object.values(S.world.devices).filter(d => !q || (d.name + ' ' + ownerName(d) + ' ' + d.type + ' ' + d.model).toLowerCase().includes(q));
+    root.innerHTML = `<input class="search" id="devSearch" placeholder="Search devices or owners…" autocomplete="off">
+      <div class="dir-results">${list.map(d => `
+        <button class="d-row ${S.devSel === d.name ? 'active' : ''}" data-dev="${d.name}">
+          <div class="avatar xs">${d.type === 'Phone' ? 'PH' : d.type === 'Desktop' ? 'DT' : 'LT'}</div>
+          <div><b class="mono">${d.name}</b><small>${esc(ownerName(d))} · ${d.type}${d.ownership === 'Personal' ? ' · personal' : ''}</small></div>
+          <span class="dots ${expert() ? 'hidden' : ''}">${devIssues(d).length ? '<i class="d lock" title="Not compliant"></i>' : ''}${d.lost || d.wiped ? '<i class="d off" title="Lost or wiped"></i>' : ''}</span>
+        </button>`).join('') || '<div class="empty-mini">No matching devices</div>'}</div>
+      <div id="devDetail"></div>`;
+    const s = $('#devSearch', root);
+    s.value = S.devQ || '';
+    s.oninput = () => { S.devQ = s.value; renderDevices(); const n = $('#devSearch'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); };
+    $$('[data-dev]', root).forEach(b => b.onclick = () => { S.devSel = b.dataset.dev; beep('click'); renderDevices(); });
+    devCard($('#devDetail', root));
+  }
+
+  function devCard(el) {
+    const d = S.devSel && S.world.devices[S.devSel];
+    if (!d) { el.innerHTML = '<div class="empty-mini">Select a device.</div>'; return; }
+    const n = d.name, issues = devIssues(d), win = d.type !== 'Phone';
+    const states = [d.locked && 'Locked', d.lost && 'Marked lost', d.isolated && 'Isolated', d.wiped && (d.wiped === 'full' ? 'Wiped' : 'Work data wiped')].filter(Boolean);
+    el.innerHTML = `<div class="u-card pop">
+      <div class="u-head"><div class="avatar">${d.type === 'Phone' ? 'PH' : 'PC'}</div><div><b class="mono">${n}</b><small>${esc(d.model)} · ${d.ownership}</small><small>${esc(d.os)} · last check-in ${esc(d.lastSync)}</small></div></div>
+      ${d.owner ? `<div class="kv"><span>Assigned to</span><b>${esc(ownerName(d))}</b></div>`
+        : `<div class="svc"><span>Assigned to</span><span class="st bad">Nobody</span></div>
+           <div class="add-grp row"><select id="devAssignSel">${userOptions()}</select><button class="btn xs" id="devAssign">Assign</button></div>`}
+      ${states.length ? `<div class="chips-row">${states.map(x => `<span class="st bad">${x}</span>`).join('')}</div>` : ''}
+      <div class="svc"><span>Compliance</span>${issues.length ? '<span class="st bad">Not compliant</span>' : '<span class="st ok">Compliant</span>'}</div>
+      ${issues.length ? `<ul class="issues">${issues.map(i => `<li>${i}</li>`).join('')}</ul>` : ''}
+      ${win ? `
+        <h4 class="mh">BitLocker</h4>
+        <div class="svc"><span>Encryption</span>${d.encrypted ? '<span class="st ok">On</span>' : '<span class="st bad">Off</span><button class="btn xs" id="devEnc">Start encryption</button>'}</div>
+        ${d.encrypted && d.keyId ? `<div class="svc"><span>Recovery key ID<br><small class="mono muted">${d.keyId}</small></span><button class="btn xs danger-o" id="devKey">Show recovery key</button></div>` : ''}
+        ${d.keyRevealed ? `<code class="fwd-addr">${d.key}</code>` : ''}
+        <h4 class="mh">Health</h4>
+        <div class="svc"><span>Firewall</span>${d.firewall ? '<span class="st ok">On</span>' : '<span class="st bad">Off</span><button class="btn xs" id="devFw">Turn on</button>'}</div>
+        <div class="svc"><span>Windows Update<br><small class="muted">${esc(d.update)}</small></span>${d.update === 'Up to date' ? '<span class="st ok">OK</span>' : '<button class="btn xs" id="devUpd">Clear cache & retry</button>'}</div>
+        <div class="svc"><span>Drivers${d.driver ? `<br><small class="muted">${esc(d.driver)}</small>` : ''}</span>${d.driver ? '<button class="btn xs" id="devRb">Roll back</button>' : '<span class="st ok">OK</span>'}</div>
+        <div class="svc"><span>USB storage</span><span class="st ${d.usb === 'Blocked' ? 'ok' : 'warn'}">${d.usb}</span>${d.usb === 'Blocked' ? '<button class="btn xs danger-o" id="devUsbOn">Allow temporarily</button>' : '<button class="btn xs" id="devUsbOff">Block</button>'}</div>` : ''}
+      <h4 class="mh">Actions</h4>
+      <div class="ops">
+        <button class="btn sm" id="devSync">Sync</button>
+        <button class="btn sm" id="devLock">Remote lock</button>
+        <button class="btn sm" id="devLost">Mark as lost</button>
+        ${win ? '<button class="btn sm" id="devIso">Isolate</button>' : ''}
+        ${d.ownership === 'Personal' || d.type === 'Phone' ? '<button class="btn sm" id="devSel">Wipe work data</button>' : ''}
+        <button class="btn sm danger-o" id="devWipe">Full wipe…</button>
+      </div>
+      <div id="devConfirm"></div>
+    </div>`;
+    const on = (id, fn) => { const e = $('#' + id, el); if (e) e.onclick = fn; };
+    on('devAssign', () => devRun(OPS.devAssign(n, $('#devAssignSel', el).value)));
+    on('devEnc', () => devRun(OPS.devEncrypt(n)));
+    on('devKey', () => devRun(OPS.devRevealKey(n)));
+    on('devFw', () => devRun(OPS.devFirewall(n)));
+    on('devUpd', () => devRun(OPS.devUpdate(n)));
+    on('devRb', () => devRun(OPS.devRollback(n)));
+    on('devUsbOn', () => devRun(OPS.devUsb(n, true)));
+    on('devUsbOff', () => devRun(OPS.devUsb(n, false)));
+    on('devSync', () => devRun(OPS.devSync(n)));
+    on('devLock', () => devRun(OPS.devLock(n)));
+    on('devLost', () => devRun(OPS.devLost(n)));
+    on('devIso', () => devRun(OPS.devIsolate(n)));
+    on('devSel', () => devRun(OPS.devWipe(n, 'selective')));
+    on('devWipe', () => {
+      $('#devConfirm', el).innerHTML = `<div class="reset-box pop"><b>Erase everything on ${n}?</b><span class="muted">This can't be undone.${d.ownership === 'Personal' ? ' This is a personal device.' : ''}</span>
+        <div class="row"><button class="btn xs primary" id="wipeGo">Wipe device</button><button class="btn xs ghost" id="wipeNo">Cancel</button></div></div>`;
+      $('#wipeNo', el).onclick = () => { $('#devConfirm', el).innerHTML = ''; };
+      $('#wipeGo', el).onclick = () => devRun(OPS.devWipe(n, 'full'));
+    });
+  }
 
   /* ------------------------------ mail admin --------------------------- */
   const MD = () => window.MAIL_DOMAIN || 'example.com';
@@ -1645,7 +1862,7 @@
     renderHUD();
     renderTicket();
     S.world = newWorld();
-    renderDirectory(); renderRemote(); renderMail(); termReset();
+    renderDirectory(); renderRemote(); renderMail(); renderDevices(); termReset();
     showModal('#startModal');
   }
 

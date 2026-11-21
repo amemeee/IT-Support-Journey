@@ -97,7 +97,12 @@
     ['Invoice stuck in quarantine', 'quarinvoice'], ['Hidden inbox rule', 'inboxrule'], ['Email bounced (typo)', 'typo'],
     ['Calendar access', 'calendar'], ['Send As permission', 'sendas'], ['Out-of-office for a colleague', 'autoreply'],
     ["Touch 'n Go PIN scam", 'tngscam'], ['Intern has no mailbox', 'licence'], ['Attachment too big', 'bigattach'],
-    ['Remove old access', 'removeaccess'], ['Courier scam release', 'courier'], ['Payroll sent to all-staff', 'payrollleak']
+    ['Remove old access', 'removeaccess'], ['Courier scam release', 'courier'], ['Payroll sent to all-staff', 'payrollleak'],
+    ['BitLocker recovery', 'bitlocker'], ["Colleague's BitLocker key", 'bitlockerother'], ['Laptop left in a Grab', 'lostlaptop'],
+    ['Stolen laptop wipe', 'stolenwipe'], ['USB blocked', 'usbblocked'], ['Approved USB exception', 'usbapproved'],
+    ['Windows Update stuck', 'updatestuck'], ['Firewall turned off', 'firewalloff'], ['Blue screen after driver update', 'bsod'],
+    ['Swollen battery', 'battery'], ['Ransomware', 'ransomware'], ['Clock out of sync', 'timeskew'],
+    ['New laptop not assigned', 'assigndevice'], ['Encryption off', 'encryptionoff'], ['Lost personal phone', 'lostphone']
   ];
   $('#scenGrid').innerHTML = scenarios.map(([t, id]) => `<a class="tag" href="sim.html?s=${id}">${t}</a>`).join('');
 

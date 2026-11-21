@@ -418,3 +418,11 @@ canvas.feed { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; }
 @media (max-width: 640px) { .modes { grid-template-columns: 1fr; } }
 /* search boxes sit in vertical stacks: don't let them grow tall */
 .tab-body > .search, .mail-view > .search { flex: 0 0 auto; }
+
+/* ---------- devices ---------- */
+#devBody { display: flex; flex-direction: column; gap: 10px; }
+#devBody > .search { flex: 0 0 auto; }
+.issues { margin: 0; padding-left: 18px; font-size: 13px; color: #fff; }
+.issues li::marker { content: '× '; }
+.ops .btn { white-space: normal; }
+.tabs button { font-size: 12px; padding-inline: 1px; letter-spacing: -.01em; }
