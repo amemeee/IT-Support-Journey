@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>IT Support Journey — Shift Simulator</title>
+  <meta name="description" content="Work a live IT help desk shift at a Kuala Lumpur company: tickets, chat, directory, remote terminal and escalations.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/sim.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='black'/><text x='50' y='68' font-size='56' font-family='Arial' font-weight='700' fill='white' text-anchor='middle'>IT</text></svg>">
+</head>
+<body class="sim">
+  <div class="bg-grid"></div>
+
+  <header class="sim-top">
+    <a class="logo" href="index.html">IT Support Journey</a>
+    <div class="agent">
+      <div class="avatar" id="agentAvatar">A</div>
+      <div class="agent-txt"><b id="agentName">Agent</b><small id="agentLevel">Lv 1 · Trainee</small></div>
+    </div>
+    <div class="xp"><div class="xp-bar"><span id="xpFill"></span></div><small id="xpText">0 / 300 XP</small></div>
+    <div class="kpis">
+      <div><small>Score</small><b id="score">0</b></div>
+      <div><small>Closed</small><b id="closed">0/8</b></div>
+      <div><small>CSAT</small><b id="csat">–</b></div>
+      <div><small>Shift</small><b id="clock" class="mono">00:00</b></div>
+    </div>
+    <button id="muteBtn" class="icon-btn" title="Toggle sound" aria-label="Toggle sound">Sound on</button>
+  </header>
+
+  <main class="sim-grid">
+    <aside class="panel queue">
+      <div class="panel-head"><h3>Ticket queue</h3><span class="badge" id="queueCount">0</span></div>
+      <div class="queue-list" id="queueList"></div>
+    </aside>
+
+    <section class="panel ticket" id="ticketPane"></section>
+
+    <aside class="panel tools">
+      <nav class="tabs">
+        <span class="ind"></span>
+        <button data-tab="dir" class="active">Directory</button>
+        <button data-tab="term">Terminal</button>
+        <button data-tab="remote">Remote</button>
+        <button data-tab="kb">KB</button>
+      </nav>
+
+      <div class="tab-body active" id="tab-dir">
+        <input class="search" id="dirSearch" placeholder="Search name, username, staff ID…" autocomplete="off">
+        <div class="dir-results" id="dirResults"></div>
+        <div id="dirDetail"></div>
+      </div>
+
+      <div class="tab-body" id="tab-term">
+        <div class="term">
+          <div class="term-out mono" id="termOut"></div>
+          <form class="term-in mono" id="termForm"><span id="termPrompt">HELPDESK-01&gt;</span><input id="termInput" autocomplete="off" spellcheck="false" aria-label="Terminal input"></form>
+        </div>
+      </div>
+
+      <div class="tab-body" id="tab-remote"><div id="remoteBody"></div></div>
+
+      <div class="tab-body" id="tab-kb">
+        <input class="search" id="kbSearch" placeholder="Search knowledge base…" autocomplete="off">
+        <div id="kbList"></div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Start -->
+  <div class="modal" id="startModal">
+    <form class="modal-card start" id="startForm">
+      <h2>Start a shift</h2>
+      <p class="muted">You are the L1 IT support agent at Kenanga Digital Sdn Bhd, Kuala Lumpur. This shift has 8 tickets. Fix what you can and escalate what you can't.</p>
+      <label class="field"><span>Your name</span><input id="agentInput" maxlength="24" placeholder="e.g. Amin" autocomplete="off"></label>
+      <div class="modes">
+        <button type="button" class="mode-opt active" data-mode="standard"><b>Standard</b><small>SLA timers, hints cost points</small></button>
+        <button type="button" class="mode-opt" data-mode="training"><b>Training</b><small>No clock, free hints</small></button>
+      </div>
+      <ul class="how">
+        <li><b>Chat</b> with the user — ask the right questions.</li>
+        <li><b>Fix</b> it with Directory, Terminal or Remote.</li>
+        <li><b>Close</b> it: resolve, or escalate to the right team.</li>
+      </ul>
+      <button class="btn primary lg">Clock in →</button>
+    </form>
+  </div>
+
+  <!-- Close ticket -->
+  <div class="modal" id="closeModal">
+    <div class="modal-card">
+      <h3>Close ticket</h3>
+      <p class="muted" id="closeId"></p>
+      <label class="field"><span>Resolution notes</span><textarea id="closeNote" rows="4" placeholder="What was wrong, what you did, and how you confirmed it…"></textarea></label>
+      <div class="close-actions">
+        <button class="btn good" id="resolveBtn">Resolve (fixed)</button>
+        <div class="esc-row"><select id="escTeam"></select><button class="btn warn" id="escBtn">Escalate</button></div>
+      </div>
+      <button class="btn ghost sm" id="cancelClose">Back to ticket</button>
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div class="modal" id="resultModal">
+    <div class="modal-card result">
+      <div class="res-ico" id="resIco"></div>
+      <h3 id="resTitle"></h3>
+      <div class="stars" id="resStars"></div>
+      <div class="res-lines" id="resLines"></div>
+      <div class="res-total"><span>Total</span><b id="resTotal">0</b></div>
+      <div id="resReveal"></div>
+      <div class="lesson" id="resLesson"></div>
+      <button class="btn primary" id="nextBtn">Next ticket →</button>
+    </div>
+  </div>
+
+  <!-- Level up -->
+  <div class="modal" id="levelModal">
+    <div class="modal-card levelup">
+      <div class="lvl-ring"><span id="lvlNum">2</span></div>
+      <small class="muted">LEVEL UP</small>
+      <h2 id="lvlName">IT Support Tech I</h2>
+      <p class="muted">XP is saved in this browser.</p>
+      <button class="btn primary" id="lvlBtn">Continue</button>
+    </div>
+  </div>
+
+  <!-- End -->
+  <div class="modal" id="endModal">
+    <div class="modal-card end">
+      <small class="muted">SHIFT COMPLETE</small>
+      <div class="grade" id="endGrade">A</div>
+      <p id="endMsg"></p>
+      <div class="end-stats" id="endStats"></div>
+      <div class="row center"><button class="btn primary" id="againBtn">New shift</button><a class="btn ghost" href="index.html">Home</a></div>
+    </div>
+  </div>
+
+  <div id="toasts"></div>
+  <canvas id="confetti"></canvas>
+
+  <script src="js/scenarios.js"></script>
+  <script src="js/sim.js"></script>
+</body>
+</html>

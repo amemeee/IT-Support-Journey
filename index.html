@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>IT Support Journey</title>
+  <meta name="description" content="A browser-based Level 1 IT help desk simulator set in a Kuala Lumpur office.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='black'/><text x='50' y='68' font-size='56' font-family='Arial' font-weight='700' fill='white' text-anchor='middle'>IT</text></svg>">
+</head>
+<body>
+  <div class="bg-grid"></div>
+
+  <header class="nav" id="nav">
+    <div class="wrap">
+      <a class="logo" href="#">IT Support Journey</a>
+      <nav class="nav-links">
+        <a href="#practise">What you practise</a>
+        <a href="#shift">How a shift works</a>
+        <a href="#malaysia">Malaysia</a>
+        <a href="#scenarios">Scenarios</a>
+      </nav>
+      <a class="btn primary sm" href="sim.html">Start a shift</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="wrap hero">
+      <div class="hero-copy">
+        <p class="kicker reveal">Level 1 IT support simulator</p>
+        <h1 class="reveal d1">Practise help desk work on realistic tickets.</h1>
+        <p class="lead reveal d2">You work a ticket queue at a fictional company in Kuala Lumpur. Users describe their problems in chat, and you fix them with a directory console, a remote terminal and a remote-management panel. Some tickets you shouldn't fix yourself, so you have to escalate them.</p>
+        <div class="cta-row reveal d3">
+          <a class="btn primary lg" href="sim.html">Start a shift</a>
+          <a class="btn ghost lg" href="#shift">How it works</a>
+        </div>
+        <dl class="stats reveal d4">
+          <div><dt>17</dt><dd>scenarios</dd></div>
+          <div><dt>8</dt><dd>tickets per shift</dd></div>
+          <div><dt>0</dt><dd>sign-ups needed</dd></div>
+        </dl>
+      </div>
+
+      <div class="hero-visual reveal d2">
+        <div class="window">
+          <div class="win-bar"><i></i><i></i><i></i><span>queue — kdigital.local</span></div>
+          <div class="mock-queue" id="mockQueue"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="practise">
+      <div class="wrap">
+        <h2 class="sec-title reveal">What you practise</h2>
+        <ol class="features">
+          <li class="f-card reveal d1"><h3>Triage</h3><p>Tickets arrive with priorities P1 to P4 and an SLA timer. New ones come in while you work, so you have to decide what to handle first.</p></li>
+          <li class="f-card reveal d2"><h3>Asking questions</h3><p>Users don't always give you the useful detail. Ask for the error message, the computer name, and whether anyone else is affected. The right questions earn points.</p></li>
+          <li class="f-card reveal d3"><h3>Account administration</h3><p>Unlock accounts, reset passwords and MFA, enable new hires, and manage group membership. Several users have very similar names.</p></li>
+          <li class="f-card reveal d1"><h3>Network diagnosis</h3><p>Use <code>ipconfig</code>, <code>ping</code>, <code>nslookup</code> and <code>/flushdns</code> on a simulated PC. The output reflects what is actually wrong with it.</p></li>
+          <li class="f-card reveal d2"><h3>Security judgement</h3><p>Identify phishing and social engineering. Resetting a password for someone you haven't verified costs more than any other mistake.</p></li>
+          <li class="f-card reveal d3"><h3>Escalation</h3><p>Outages go to Infrastructure, incidents to Security, and hardware damage to Desktop L2. Escalating a ticket you could have fixed also costs points.</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="block" id="terminal">
+      <div class="wrap demo">
+        <div class="reveal">
+          <h2 class="sec-title left">Commands behave like the real thing</h2>
+          <p>Each simulated PC has its own state. A 169.254.x.x address means DHCP failed. If <code>ping</code> and <code>nslookup</code> return different addresses, the local DNS cache is stale. A hung print spooler has to be stopped before it will start again.</p>
+          <ul class="check">
+            <li>If the PC is offline, you get a guided session where the user runs commands for you.</li>
+            <li>Command history works with the up and down arrow keys.</li>
+            <li>The Software Center blocks software that needs a licence.</li>
+          </ul>
+        </div>
+        <div class="window reveal d2">
+          <div class="win-bar"><i></i><i></i><i></i><span>remote shell — KD-ENG-007</span></div>
+          <div class="term-demo" id="termDemo"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="shift">
+      <div class="wrap">
+        <h2 class="sec-title reveal">How a shift works</h2>
+        <ol class="steps reveal">
+          <li><b>Choose a mode.</b> Standard mode has SLA timers, and hints cost points. Training mode has no timer.</li>
+          <li><b>Open a ticket and talk to the user.</b> Use the question buttons or type a question.</li>
+          <li><b>Fix it or escalate it.</b> Use Directory, Terminal and Remote, or send it to another team.</li>
+          <li><b>Review the result.</b> You see a points breakdown, the user's rating, and what the correct approach was.</li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="block" id="malaysia">
+      <div class="wrap">
+        <h2 class="sec-title reveal">Set in a Malaysian workplace</h2>
+        <div class="my-grid">
+          <div class="my-card reveal d1">
+            <ul class="my-list">
+              <li><b>Language</b><span>Users write in English, Bahasa Malaysia and Manglish. Each question button also shows the BM phrase.</span></li>
+              <li><b>PDPA</b><span>You verify identity with a staff ID and never ask for a MyKad number, in line with the Personal Data Protection Act 2010.</span></li>
+              <li><b>Local scams</b><span>A fake LHDN e-Invoice email, and a caller claiming to be a "Dato'" who needs a password reset right away.</span></li>
+              <li><b>Timing</b><span>Lockouts after Raya leave, payroll and KWSP deadlines, and staff working from home on Unifi.</span></li>
+              <li><b>Names</b><span>bin, binti, a/l and a/p, and Chinese name order. Two users are called Nurul, and two more are Tan Wei Min and Tan Wei Ming.</span></li>
+            </ul>
+          </div>
+          <div class="my-card reveal d2">
+            <h3>Phrases for support calls</h3>
+            <p class="muted small">Click the card to see the English.</p>
+            <div class="phrase-flip" id="phraseFlip">
+              <div class="phrase-inner">
+                <div class="phrase-face front" id="phraseFront"></div>
+                <div class="phrase-face back" id="phraseBack"></div>
+              </div>
+            </div>
+            <div class="phrase-nav">
+              <button class="btn ghost sm" id="phrasePrev">Previous</button>
+              <small class="muted mono" id="phraseIdx">1 / 8</small>
+              <button class="btn ghost sm" id="phraseNext">Next</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="scenarios">
+      <div class="wrap">
+        <h2 class="sec-title reveal">Scenarios</h2>
+        <p class="sec-sub reveal">Pick one to put it at the start of your shift.</p>
+        <div class="scen-grid reveal" id="scenGrid"></div>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="wrap">
+        <h2 class="sec-title reveal">Levels</h2>
+        <p class="sec-sub reveal">XP carries over between shifts and is stored in your browser.</p>
+        <table class="levels reveal">
+          <thead><tr><th>Level</th><th>Title</th><th>XP</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Trainee</td><td>0</td></tr>
+            <tr><td>2</td><td>IT Support Tech I</td><td>300</td></tr>
+            <tr><td>3</td><td>IT Support Tech II</td><td>800</td></tr>
+            <tr><td>4</td><td>Senior IT Support</td><td>1,600</td></tr>
+            <tr><td>5</td><td>L2 Support Engineer</td><td>3,000</td></tr>
+            <tr><td>6</td><td>IT Support Lead</td><td>5,000</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="wrap cta reveal">
+        <h2>Start a shift</h2>
+        <p>It runs in the browser, and there's nothing to install.</p>
+        <a class="btn primary lg" href="sim.html">Open the simulator</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>© <span id="yr"></span> IT Support Journey. The company, people and systems are fictional.</span>
+    </div>
+  </footer>
+
+  <script src="js/landing.js"></script>
+</body>
+</html>
