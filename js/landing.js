@@ -50,15 +50,15 @@
 
   /* terminal demo, typed out once it scrolls into view */
   const script = [
-    ['p', 'KD-ENG-007(guided)> ', 'ipconfig'],
+    ['p', 'XYZ-ENG-007(guided)> ', 'ipconfig'],
     ['o', '   IPv4 Address. . . . : 169.254.88.12'],
     ['o', '   Default Gateway . . : '],
     ['c', '# 169.254.x.x means DHCP failed'],
-    ['p', 'KD-ENG-007(guided)> ', 'ipconfig /release'],
+    ['p', 'XYZ-ENG-007(guided)> ', 'ipconfig /release'],
     ['o', '   IPv4 address released.'],
-    ['p', 'KD-ENG-007(guided)> ', 'ipconfig /renew'],
+    ['p', 'XYZ-ENG-007(guided)> ', 'ipconfig /renew'],
     ['o', '   IPv4 Address. . . . : 10.12.7.7'],
-    ['p', 'KD-ENG-007> ', 'ping google.com'],
+    ['p', 'XYZ-ENG-007> ', 'ping google.com'],
     ['o', '   Reply from 142.250.4.100: time=9ms']
   ];
   const td = $('#termDemo');
@@ -92,9 +92,134 @@
     ['Stuck print queue', 'printer'], ['No network (APIPA)', 'nointernet'], ['Stale DNS cache', 'dns'],
     ['LHDN phishing email', 'phishing'], ['Outlook crashing', 'outlook'], ['Software request', 'software'],
     ['Email outage', 'outage'], ['New hire onboarding', 'newhire'], ['Disk full', 'diskfull'],
-    ["Fake Dato' call", 'socialeng'], ['MFA reset', 'mfa'], ['Liquid spill', 'hardware'], ['Expat needs VPN', 'expatvpn'], ['MFA fatigue attack', 'mfafatigue']
+    ["Fake Dato' call", 'socialeng'], ['MFA reset', 'mfa'], ['Liquid spill', 'hardware'], ['Expat needs VPN', 'expatvpn'], ['MFA fatigue attack', 'mfafatigue'], ['CCTV camera offline', 'cctv'], ['CCTV footage request', 'cctvfootage'],
+    ['Mailbox full', 'mailfull'], ['Shared mailbox access', 'sharedmbx'], ['Missing from team list', 'dlmissing'],
+    ['Invoice stuck in quarantine', 'quarinvoice'], ['Hidden inbox rule', 'inboxrule'], ['Email bounced (typo)', 'typo'],
+    ['Calendar access', 'calendar'], ['Send As permission', 'sendas'], ['Out-of-office for a colleague', 'autoreply'],
+    ["Touch 'n Go PIN scam", 'tngscam'], ['Intern has no mailbox', 'licence'], ['Attachment too big', 'bigattach'],
+    ['Remove old access', 'removeaccess'], ['Courier scam release', 'courier'], ['Payroll sent to all-staff', 'payrollleak']
   ];
   $('#scenGrid').innerHTML = scenarios.map(([t, id]) => `<a class="tag" href="sim.html?s=${id}">${t}</a>`).join('');
+
+  /* ---------- playable mini ticket ---------- */
+  const face = key => `<img class="face" src="assets/avatars/${key}.webp" alt="" width="44" height="44">`;
+  const steps = [
+    {
+      q: 'What do you do first?',
+      opts: [
+        { t: 'Reset her password', pts: -10, fb: "Not yet. You don't know who you're talking to, and she may not need a new password at all." },
+        { t: 'Look her up in the directory', pts: 10, ok: true, fb: 'Right. Look before you change anything.' },
+        { t: 'Escalate to Security', pts: -10, fb: 'Nothing suspicious here. A lockout is an L1 fix, and Security will bounce it back.' }
+      ]
+    },
+    {
+      q: 'Searching "Nurul" finds two people. She gives you her staff ID: <b class="mono">XYZ20417</b>. Which account is hers?',
+      dir: true,
+      opts: [
+        { t: 'Nurul Aisyah binti Ahmad', sub: 'HR · XYZ20417 · Locked out', key: 'naisyah', pts: 10, ok: true, fb: 'The staff ID and department both match.' },
+        { t: 'Nurul Ain binti Razak', sub: 'Operations · XYZ31877 · OK', key: 'nain', pts: -40, fb: "That's Nurul Ain from the warehouse. Changing the wrong person's account costs 40 points." }
+      ]
+    },
+    {
+      q: 'Her account says <b>Locked out</b>, and her password is still valid. What\'s the fix?',
+      opts: [
+        { t: 'Unlock the account', pts: 100, ok: true, fb: 'That\'s the whole fix. She knows her password, she just typed the old one too many times.' },
+        { t: 'Reset her password', pts: -10, fb: 'It would work, but it\'s overkill. Now she has to learn a new password for no reason.' },
+        { t: 'Disable it and enable it again', pts: -50, fb: 'Disabling an active account can break her email and sessions. Never use it as a fix.' }
+      ]
+    },
+    {
+      q: 'Done. Close the ticket now?',
+      opts: [
+        { t: 'Ask her to try again first', pts: 10, ok: true, fb: 'Always confirm the fix with the user before you close a ticket.' },
+        { t: 'Close it, it\'s obviously fixed', pts: 0, ok: true, fb: 'It probably is. In the simulator, confirming first earns 10 extra points.' }
+      ]
+    }
+  ];
+  const mini = { i: 0, score: 0 };
+  const stepEl = $('#miniStep');
+
+  function setScore(delta) {
+    mini.score += delta;
+    const el = $('#miniScore');
+    el.textContent = mini.score + ' pts';
+    el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
+  }
+
+  function renderStep() {
+    const s = steps[mini.i];
+    $('#miniBar').style.width = (mini.i / steps.length * 100) + '%';
+    stepEl.innerHTML = `<p class="mini-q">${s.q}</p>
+      <div class="mini-opts ${s.dir ? 'dir' : ''}">${s.opts.map((o, j) => `
+        <button class="mini-opt" data-j="${j}">${o.key ? face(o.key) : ''}<span><b>${o.t}</b>${o.sub ? `<small>${o.sub}</small>` : ''}</span><em class="mono"></em></button>`).join('')}
+      </div>
+      <div class="mini-fb" aria-live="polite"></div>`;
+    stepEl.classList.remove('enter'); void stepEl.offsetWidth; stepEl.classList.add('enter');
+    $$('.mini-opt', stepEl).forEach(b => b.addEventListener('click', () => choose(b)));
+  }
+
+  function choose(btn) {
+    const o = steps[mini.i].opts[+btn.dataset.j];
+    if (btn.disabled) return;
+    btn.disabled = true;
+    btn.classList.add(o.ok ? 'right' : 'wrong');
+    btn.querySelector('em').textContent = (o.pts > 0 ? '+' : '') + o.pts;
+    setScore(o.pts);
+    const fb = $('.mini-fb', stepEl);
+    fb.innerHTML = `<p>${o.fb}</p>`;
+    fb.classList.remove('show'); void fb.offsetWidth; fb.classList.add('show');
+    if (o.ok) {
+      const li = $$('#learnList li')[mini.i]; if (li) li.classList.add('done');
+      $$('.mini-opt', stepEl).forEach(b => { b.disabled = true; });
+      fb.insertAdjacentHTML('beforeend', `<button class="btn primary sm" id="miniNext">${mini.i < steps.length - 1 ? 'Next' : 'See result'}</button>`);
+      $('#miniNext').addEventListener('click', () => { mini.i++; mini.i < steps.length ? renderStep() : finish(); });
+    } else {
+      fb.insertAdjacentHTML('beforeend', '<small class="muted">Pick another option.</small>');
+    }
+  }
+
+  function finish() {
+    $('#miniBar').style.width = '100%';
+    const best = 130;
+    const stars = mini.score >= best ? 5 : mini.score >= 100 ? 4 : mini.score >= 60 ? 3 : 2;
+    stepEl.innerHTML = `
+      <div class="msg">${face('naisyah')}<div><small>Nurul Aisyah · HR Executive</small><p>Eh, it works now! Terima kasih banyak-banyak 🙏</p></div></div>
+      <div class="mini-end">
+        <div><span class="big mono">${mini.score}</span><small>points (best possible: ${best})</small></div>
+        <div class="stars-row">${'★'.repeat(stars)}<span>${'★'.repeat(5 - stars)}</span></div>
+        <p>That was one ticket. A shift has eight, and they don't all come with a friendly user and an obvious answer.</p>
+        <div class="cta-row"><a class="btn primary" href="sim.html">Clock in for a full shift</a><button class="btn ghost" id="miniAgain">Play it again</button></div>
+      </div>`;
+    stepEl.classList.remove('enter'); void stepEl.offsetWidth; stepEl.classList.add('enter');
+    $('#miniAgain').addEventListener('click', () => {
+      mini.i = 0; mini.score = 0; $('#miniScore').textContent = '0 pts';
+      $$('#learnList li').forEach(li => li.classList.remove('done'));
+      renderStep();
+    });
+  }
+  renderStep();
+
+  /* ---------- the cast ---------- */
+  const cast = [
+    ['naisyah', 'Nurul Aisyah', 'HR Executive', "Back from Raya leave. Can't remember which password she used last."],
+    ['rosnah', 'Kak Rosnah', 'Office Manager', "Will tell you the whole floor is down before you've finished reading her ticket. This time she's right."],
+    ['twming', 'Tan Wei Ming', 'Senior Accountant', 'Month-end close is today, and his password expired last night.'],
+    ['twmin', 'Tan Wei Min', 'Software Engineer', 'Not the same person as Tan Wei Ming. Check the staff ID.'],
+    ['jwong', 'Jason Wong', 'Account Manager', 'Typed his password into a fake LHDN page, then asked if that was normal.'],
+    ['draj', 'Daniel Raj', 'Graphic Designer', 'Wants Photoshop installed by 2pm. There is no licence.'],
+    ['arjun', 'Arjun', 'CS Team Lead', 'His teh tarik is now inside his keyboard.'],
+    ['htanaka', 'Hiroshi Tanaka', 'Regional Director', 'Moved from Tokyo last week. Flies to Jakarta on Monday and needs VPN.'],
+    ['ksoon', 'Khoo Soon Lee', 'Sales Executive', 'Got 30 sign-in prompts at 2am and approved one to make them stop.'],
+    ['fnadia', 'Farah Nadia', 'Payroll Executive', 'New phone, empty Authenticator app, and payroll runs tomorrow.'],
+    ['dkamal', "Dato' Kamal", 'CEO', 'The real one is in a board meeting. Whoever is calling you from KLIA is not him.'],
+    ['hacker', '???', 'Not on the payroll', 'Has a list of leaked passwords and plenty of patience. Turns up when you least expect it.']
+  ];
+  $('#cast').innerHTML = cast.map(([k, n, r, l], i) => `
+    <figure class="person reveal d${i % 4 + 1} ${k === 'hacker' ? 'shady' : ''}">
+      <img src="assets/avatars/${k}.webp" alt="" width="192" height="192" loading="lazy" decoding="async">
+      <figcaption><b>${n}</b><small>${r}</small><p>${l}</p></figcaption>
+    </figure>`).join('');
+  $$('#cast .reveal').forEach(el => io.observe(el));
 
   /* BM phrase cards */
   const phrases = [

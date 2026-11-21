@@ -45,6 +45,7 @@
         <button data-tab="dir" class="active">Directory</button>
         <button data-tab="term">Terminal</button>
         <button data-tab="remote">Remote</button>
+        <button data-tab="mail">Mail</button>
         <button data-tab="kb">KB</button>
       </nav>
 
@@ -63,6 +64,8 @@
 
       <div class="tab-body" id="tab-remote"><div id="remoteBody"></div></div>
 
+      <div class="tab-body" id="tab-mail"><div id="mailBody"></div></div>
+
       <div class="tab-body" id="tab-kb">
         <input class="search" id="kbSearch" placeholder="Search knowledge base…" autocomplete="off">
         <div id="kbList"></div>
@@ -74,11 +77,12 @@
   <div class="modal" id="startModal">
     <form class="modal-card start" id="startForm">
       <h2>Start a shift</h2>
-      <p class="muted">You are the L1 IT support agent at Kenanga Digital Sdn Bhd, Kuala Lumpur. This shift has 8 tickets. Fix what you can and escalate what you can't.</p>
+      <p class="muted">You are the L1 IT support agent at XYZ100 Sdn Bhd, Kuala Lumpur. This shift has 8 tickets. Fix what you can and escalate what you can't.</p>
       <label class="field"><span>Your name</span><input id="agentInput" maxlength="24" placeholder="e.g. Amin" autocomplete="off"></label>
       <div class="modes">
         <button type="button" class="mode-opt active" data-mode="standard"><b>Standard</b><small>SLA timers, hints cost points</small></button>
         <button type="button" class="mode-opt" data-mode="training"><b>Training</b><small>No clock, free hints</small></button>
+        <button type="button" class="mode-opt" data-mode="expert"><b>Expert</b><small>Type everything, no hints, +25% points</small></button>
       </div>
       <ul class="how">
         <li><b>Chat</b> with the user — ask the right questions.</li>
@@ -139,10 +143,20 @@
     </div>
   </div>
 
+  <!-- CCTV monitor -->
+  <div class="modal" id="cctvModal">
+    <div class="modal-card monitor">
+      <div class="mon-head"><div><b>Guard post monitor</b><small class="mono muted" id="monHost"></small></div><button class="btn xs ghost" id="monClose">Close</button></div>
+      <div class="mon-grid" id="monGrid"></div>
+      <small class="muted">Click a camera to enlarge it. Click again to see all cameras.</small>
+    </div>
+  </div>
+
   <div id="toasts"></div>
   <canvas id="confetti"></canvas>
 
   <script src="js/scenarios.js"></script>
+  <script src="js/scenarios/email.js"></script>
   <script src="js/sim.js"></script>
 </body>
 </html>

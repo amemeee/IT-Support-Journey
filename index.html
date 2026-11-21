@@ -18,9 +18,9 @@
     <div class="wrap">
       <a class="logo" href="#">IT Support Journey</a>
       <nav class="nav-links">
-        <a href="#practise">What you practise</a>
-        <a href="#shift">How a shift works</a>
-        <a href="#malaysia">Malaysia</a>
+        <a href="#try">Try a ticket</a>
+        <a href="#office">The office</a>
+        <a href="#mistakes">Costly mistakes</a>
         <a href="#scenarios">Scenarios</a>
       </nav>
       <a class="btn primary sm" href="sim.html">Start a shift</a>
@@ -28,89 +28,128 @@
   </header>
 
   <main>
+    <!-- HERO: the morning of your first shift -->
     <section class="wrap hero">
       <div class="hero-copy">
-        <p class="kicker reveal">Level 1 IT support simulator</p>
-        <h1 class="reveal d1">Practise help desk work on realistic tickets.</h1>
-        <p class="lead reveal d2">You work a ticket queue at a fictional company in Kuala Lumpur. Users describe their problems in chat, and you fix them with a directory console, a remote terminal and a remote-management panel. Some tickets you shouldn't fix yourself, so you have to escalate them.</p>
+        <p class="kicker reveal"><span class="mono">Mon 08:47 · Menara XYZ100, Kuala Lumpur</span></p>
+        <h1 class="reveal d1">It's your first day on the help desk. The queue is already filling up.</h1>
+        <p class="lead reveal d2">Someone in HR is locked out after Raya leave. Level 12 has no email. A man claiming to be the CEO wants his password sent to a Gmail address. And somebody just spilled teh tarik on a laptop.</p>
+        <p class="lead reveal d2">You have eight tickets, a directory console, a remote terminal and a timer. Fix what you can and escalate what you can't. Every choice gets scored.</p>
         <div class="cta-row reveal d3">
-          <a class="btn primary lg" href="sim.html">Start a shift</a>
-          <a class="btn ghost lg" href="#shift">How it works</a>
+          <a class="btn primary lg" href="sim.html">Clock in</a>
+          <a class="btn ghost lg" href="#try">Try one ticket first</a>
         </div>
-        <dl class="stats reveal d4">
-          <div><dt>17</dt><dd>scenarios</dd></div>
-          <div><dt>8</dt><dd>tickets per shift</dd></div>
-          <div><dt>0</dt><dd>sign-ups needed</dd></div>
-        </dl>
       </div>
 
       <div class="hero-visual reveal d2">
         <div class="window">
-          <div class="win-bar"><i></i><i></i><i></i><span>queue — kdigital.local</span></div>
+          <div class="win-bar"><i></i><i></i><i></i><span>queue — xyz100.local</span></div>
           <div class="mock-queue" id="mockQueue"></div>
         </div>
       </div>
     </section>
 
-    <section class="block" id="practise">
+    <!-- TRY: a playable mini ticket -->
+    <section class="block" id="try">
       <div class="wrap">
-        <h2 class="sec-title reveal">What you practise</h2>
-        <ol class="features">
-          <li class="f-card reveal d1"><h3>Triage</h3><p>Tickets arrive with priorities P1 to P4 and an SLA timer. New ones come in while you work, so you have to decide what to handle first.</p></li>
-          <li class="f-card reveal d2"><h3>Asking questions</h3><p>Users don't always give you the useful detail. Ask for the error message, the computer name, and whether anyone else is affected. The right questions earn points.</p></li>
-          <li class="f-card reveal d3"><h3>Account administration</h3><p>Unlock accounts, reset passwords and MFA, enable new hires, and manage group membership. Several users have very similar names.</p></li>
-          <li class="f-card reveal d1"><h3>Network diagnosis</h3><p>Use <code>ipconfig</code>, <code>ping</code>, <code>nslookup</code> and <code>/flushdns</code> on a simulated PC. The output reflects what is actually wrong with it.</p></li>
-          <li class="f-card reveal d2"><h3>Security judgement</h3><p>Identify phishing and social engineering. Resetting a password for someone you haven't verified costs more than any other mistake.</p></li>
-          <li class="f-card reveal d3"><h3>Escalation</h3><p>Outages go to Infrastructure, incidents to Security, and hardware damage to Desktop L2. Escalating a ticket you could have fixed also costs points.</p></li>
+        <div class="sec-intro reveal">
+          <h2 class="sec-title">Try one ticket right here</h2>
+          <p>Four decisions, and it takes about thirty seconds. This is what every ticket in the simulator feels like.</p>
+        </div>
+
+        <div class="try-grid">
+        <div class="mini reveal" id="mini">
+          <div class="mini-head">
+            <span class="prio P3">P3</span><span class="mono muted">INC-1041</span><b>Locked out after Raya leave</b>
+            <span class="mini-score mono" id="miniScore">0 pts</span>
+          </div>
+
+          <div class="mini-chat">
+            <div class="msg">
+              <img class="face" src="assets/avatars/naisyah.webp" alt="" width="44" height="44">
+              <div><small>Nurul Aisyah · HR Executive</small><p>Hi IT, saya baru balik cuti Raya and Windows says my account is locked. I think I keyed in my old password too many times 😅</p></div>
+            </div>
+          </div>
+
+          <div class="mini-step" id="miniStep"></div>
+          <div class="mini-progress"><span id="miniBar"></span></div>
+        </div>
+        <aside class="learn reveal d2">
+          <h3>What this ticket teaches</h3>
+          <ol id="learnList">
+            <li><span><b>Look before you touch.</b> Check the account before you change anything.</span></li>
+            <li><span><b>Confirm who it is.</b> Similar names are common, so match the staff ID.</span></li>
+            <li><span><b>Use the smallest fix.</b> Unlock if that's enough. Don't reset by reflex.</span></li>
+            <li><span><b>Close the loop.</b> Have the user confirm it works before you close.</span></li>
+          </ol>
+          <p class="muted small">Every one of the 34 tickets in the simulator teaches something like this, and explains it when you get it wrong.</p>
+        </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- OFFICE: the cast -->
+    <section class="block" id="office">
+      <div class="wrap">
+        <div class="sec-intro reveal">
+          <h2 class="sec-title">Meet the office</h2>
+          <p>XYZ100 Sdn Bhd is a fictional company of about 140 people. These are some of the people who'll be in your queue.</p>
+        </div>
+        <div class="cast" id="cast"></div>
+      </div>
+    </section>
+
+    <!-- MISTAKES -->
+    <section class="block" id="mistakes">
+      <div class="wrap">
+        <div class="sec-intro reveal">
+          <h2 class="sec-title">The mistakes that cost the most</h2>
+          <p>A correct fix earns about 100 points. These can wipe out a whole shift's worth.</p>
+        </div>
+        <ol class="costs">
+          <li class="reveal"><span class="pts">−200</span><div><b>Adding someone to Domain Admins</b><p>They asked for "more access". The help desk never grants admin rights.</p></div></li>
+          <li class="reveal d1"><span class="pts">−150</span><div><b>Resetting a password for a caller you didn't verify</b><p>"Dato'" gave the wrong staff ID and got angry. That was the attacker.</p></div></li>
+          <li class="reveal d2"><span class="pts">−120</span><div><b>Installing blocked software</b><p>uTorrent is in the catalogue so you can learn to say no.</p></div></li>
+          <li class="reveal d3"><span class="pts">−60</span><div><b>Resolving something that needed escalating</b><p>A whole floor without email isn't a desktop problem. Infrastructure needs to know.</p></div></li>
+          <li class="reveal d4"><span class="pts">−50</span><div><b>Closing a ticket that isn't fixed</b><p>The user reopens it and gives you one star. Ask them to try again before you close.</p></div></li>
         </ol>
       </div>
     </section>
 
+    <!-- TERMINAL -->
     <section class="block" id="terminal">
       <div class="wrap demo">
         <div class="reveal">
-          <h2 class="sec-title left">Commands behave like the real thing</h2>
-          <p>Each simulated PC has its own state. A 169.254.x.x address means DHCP failed. If <code>ping</code> and <code>nslookup</code> return different addresses, the local DNS cache is stale. A hung print spooler has to be stopped before it will start again.</p>
-          <ul class="check">
-            <li>If the PC is offline, you get a guided session where the user runs commands for you.</li>
-            <li>Command history works with the up and down arrow keys.</li>
-            <li>The Software Center blocks software that needs a licence.</li>
-          </ul>
+          <h2 class="sec-title left">The terminal tells you what's wrong, if you know how to read it</h2>
+          <p>Muhammad Faiz's desktop has no network. <code>ipconfig</code> shows <code>169.254.88.12</code>, which means the PC never got an address from DHCP. Release, renew, ping. Fixed.</p>
+          <p>Every simulated PC has its own state. If <code>ping</code> and <code>nslookup</code> return different addresses, the DNS cache is stale. A hung print spooler won't restart until you stop it first.</p>
         </div>
         <div class="window reveal d2">
-          <div class="win-bar"><i></i><i></i><i></i><span>remote shell — KD-ENG-007</span></div>
+          <div class="win-bar"><i></i><i></i><i></i><span>remote shell — XYZ-ENG-007</span></div>
           <div class="term-demo" id="termDemo"></div>
         </div>
       </div>
     </section>
 
-    <section class="block" id="shift">
-      <div class="wrap">
-        <h2 class="sec-title reveal">How a shift works</h2>
-        <ol class="steps reveal">
-          <li><b>Choose a mode.</b> Standard mode has SLA timers, and hints cost points. Training mode has no timer.</li>
-          <li><b>Open a ticket and talk to the user.</b> Use the question buttons or type a question.</li>
-          <li><b>Fix it or escalate it.</b> Use Directory, Terminal and Remote, or send it to another team.</li>
-          <li><b>Review the result.</b> You see a points breakdown, the user's rating, and what the correct approach was.</li>
-        </ol>
-      </div>
-    </section>
-
+    <!-- MALAYSIA -->
     <section class="block" id="malaysia">
       <div class="wrap">
-        <h2 class="sec-title reveal">Set in a Malaysian workplace</h2>
+        <div class="sec-intro reveal">
+          <h2 class="sec-title">Why it's set in Malaysia</h2>
+          <p>Most help desk training assumes an American office. Real tickets in KL look different.</p>
+        </div>
         <div class="my-grid">
           <div class="my-card reveal d1">
             <ul class="my-list">
-              <li><b>Language</b><span>Users write in English, Bahasa Malaysia and Manglish. Each question button also shows the BM phrase.</span></li>
-              <li><b>PDPA</b><span>You verify identity with a staff ID and never ask for a MyKad number, in line with the Personal Data Protection Act 2010.</span></li>
-              <li><b>Local scams</b><span>A fake LHDN e-Invoice email, and a caller claiming to be a "Dato'" who needs a password reset right away.</span></li>
-              <li><b>Timing</b><span>Lockouts after Raya leave, payroll and KWSP deadlines, and staff working from home on Unifi.</span></li>
-              <li><b>Names</b><span>bin, binti, a/l and a/p, and Chinese name order. Two users are called Nurul, and two more are Tan Wei Min and Tan Wei Ming.</span></li>
+              <li><b>People write the way they talk</b><span>"Habis! Nobody on Level 12 can get email!" You'll read English, BM and Manglish, and each question button shows the BM phrase too.</span></li>
+              <li><b>The PDPA applies</b><span>You verify people with a staff ID. You never need their MyKad number, and asking for it is a bad habit.</span></li>
+              <li><b>The scams are local</b><span>A fake LHDN e-Invoice login page, and a "Dato'" at KLIA who can't remember his own staff ID.</span></li>
+              <li><b>The calendar matters</b><span>Lockouts after Raya leave, leave applications before Deepavali, KWSP deadlines, and people on home Unifi.</span></li>
+              <li><b>Names are a trap</b><span>Nurul Aisyah and Nurul Ain. Tan Wei Min and Tan Wei Ming. Unlock the wrong one and you lose points.</span></li>
             </ul>
           </div>
           <div class="my-card reveal d2">
-            <h3>Phrases for support calls</h3>
+            <h3>Phrases worth knowing</h3>
             <p class="muted small">Click the card to see the English.</p>
             <div class="phrase-flip" id="phraseFlip">
               <div class="phrase-inner">
@@ -128,19 +167,25 @@
       </div>
     </section>
 
+    <!-- SCENARIOS -->
     <section class="block" id="scenarios">
       <div class="wrap">
-        <h2 class="sec-title reveal">Scenarios</h2>
-        <p class="sec-sub reveal">Pick one to put it at the start of your shift.</p>
+        <div class="sec-intro reveal">
+          <h2 class="sec-title">34 tickets, and you can start with any of them</h2>
+          <p>Pick one and it will be the first ticket in your shift.</p>
+        </div>
         <div class="scen-grid reveal" id="scenGrid"></div>
       </div>
     </section>
 
+    <!-- LEVELS -->
     <section class="block">
-      <div class="wrap">
-        <h2 class="sec-title reveal">Levels</h2>
-        <p class="sec-sub reveal">XP carries over between shifts and is stored in your browser.</p>
-        <table class="levels reveal">
+      <div class="wrap levels-wrap">
+        <div class="reveal">
+          <h2 class="sec-title left">From Trainee to Support Lead</h2>
+          <p class="muted">Your XP carries over between shifts and is saved in your browser. A perfect shift is worth about 1,000 XP, so you can reach L2 in a few good afternoons.</p>
+        </div>
+        <table class="levels reveal d1">
           <thead><tr><th>Level</th><th>Title</th><th>XP</th></tr></thead>
           <tbody>
             <tr><td>1</td><td>Trainee</td><td>0</td></tr>
@@ -156,9 +201,10 @@
 
     <section class="block">
       <div class="wrap cta reveal">
-        <h2>Start a shift</h2>
-        <p>It runs in the browser, and there's nothing to install.</p>
-        <a class="btn primary lg" href="sim.html">Open the simulator</a>
+        <p class="mono muted">08:59 · 3 tickets waiting</p>
+        <h2>Your queue is waiting.</h2>
+        <p>No sign-up, nothing to install. A shift takes about fifteen minutes.</p>
+        <a class="btn primary lg" href="sim.html">Clock in</a>
       </div>
     </section>
   </main>

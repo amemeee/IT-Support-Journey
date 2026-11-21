@@ -40,6 +40,12 @@ If your tool accepts a reference image, attach the example illustration as a sty
 | `arjun.png` | Arjun a/l Selvam, Customer Support Team Lead | Indian Malaysian man, mid 30s, full neat beard, polo shirt, sheepish apologetic expression. |
 | `ksoon.png` | Khoo Soon Lee, Sales Executive | Chinese Malaysian man, late 20s, short crew cut, smart casual shirt, neutral expression. |
 
+## Facilities
+
+| File | Who | Prompt |
+|---|---|---|
+| `rahman.png` | Rahman bin Yusof, Security Guard (contractor) | Malay man, early 50s, short greying hair, thick moustache, wearing a security guard uniform shirt with shoulder epaulettes and a small badge, walkie-talkie clipped to the chest pocket, steady and polite expression. |
+
 ## Foreign staff
 
 | File | Who | Prompt |
