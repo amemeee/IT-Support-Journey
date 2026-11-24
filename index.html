@@ -8,8 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='black'/><text x='50' y='68' font-size='56' font-family='Arial' font-weight='700' fill='white' text-anchor='middle'>IT</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='black'/><text x='50' y='68' font-size='56' font-family='Arial' font-weight='700' fill='white' text-anchor='middle'>IT</text></svg>">
 </head>
 <body>
   <div class="bg-grid"></div>
@@ -19,7 +18,6 @@
       <a class="logo" href="#">IT Support Journey</a>
       <nav class="nav-links">
         <a href="#try">Try a ticket</a>
-        <a href="#office">The office</a>
         <a href="#mistakes">Costly mistakes</a>
         <a href="#scenarios">Scenarios</a>
       </nav>
@@ -82,20 +80,9 @@
             <li><span><b>Use the smallest fix.</b> Unlock if that's enough. Don't reset by reflex.</span></li>
             <li><span><b>Close the loop.</b> Have the user confirm it works before you close.</span></li>
           </ol>
-          <p class="muted small">Every one of the 49 tickets in the simulator teaches something like this, and explains it when you get it wrong.</p>
+          <p class="muted small">Every one of the 79 tickets in the simulator teaches something like this, and explains it when you get it wrong.</p>
         </aside>
         </div>
-      </div>
-    </section>
-
-    <!-- OFFICE: the cast -->
-    <section class="block" id="office">
-      <div class="wrap">
-        <div class="sec-intro reveal">
-          <h2 class="sec-title">Meet the office</h2>
-          <p>XYZ100 Sdn Bhd is a fictional company of about 140 people. These are some of the people who'll be in your queue.</p>
-        </div>
-        <div class="cast" id="cast"></div>
       </div>
     </section>
 
@@ -171,7 +158,7 @@
     <section class="block" id="scenarios">
       <div class="wrap">
         <div class="sec-intro reveal">
-          <h2 class="sec-title">49 tickets, and you can start with any of them</h2>
+          <h2 class="sec-title">79 tickets, and you can start with any of them</h2>
           <p>Pick one and it will be the first ticket in your shift.</p>
         </div>
         <div class="scen-grid reveal" id="scenGrid"></div>
@@ -215,6 +202,6 @@
     </div>
   </footer>
 
-  <script src="js/landing.js"></script>
+  <script type="module" src="/src/landing/main.js"></script>
 </body>
 </html>

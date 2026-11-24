@@ -1,50 +1,40 @@
 /*
- * Scenario validator — run with:  node tools/test-scenarios.js
+ * Scenario validator — run with:  npm run test:scenarios
  *
- * Loads every scenario file the simulator loads (in the same order as
- * sim.html) and checks each scenario's data and logic:
+ * Imports the same data the simulator uses (src/data) and checks every
+ * scenario's data and logic:
  *   - required fields, unique ids, valid priority / team / KB article
- *   - the requester, targets, device and avatar keys exist
- *   - "fix" tickets: broken after setup(), fixed after solve()
- *   - "escalate" tickets: never count as fixed
+ *   - requester, targets and device exist; "On the job" note present
+ *   - fix tickets: broken after setup(), fixed after solve()
+ *   - escalation tickets: never count as fixed
+ *   - forbid / bonus / answer functions are well formed
  * Exits with code 1 if anything fails.
  */
-const fs = require('fs');
-const path = require('path');
-const vm = require('vm');
-
-const root = path.resolve(__dirname, '..');
-const html = fs.readFileSync(path.join(root, 'sim.html'), 'utf8');
-const files = [...html.matchAll(/<script src="(js\/scenarios[^"]*\.js)"><\/script>/g)].map(m => m[1]);
-
-const ctx = { Math, JSON, console };
-ctx.window = ctx;
-vm.createContext(ctx);
-files.forEach(f => vm.runInContext(fs.readFileSync(path.join(root, f), 'utf8'), ctx, { filename: f }));
+import { SCENARIOS, KB, TEAMS, DIRECTORY, HOSTS, MAIL, DEVICES, NETWORK, APPS } from '../src/data/index.js';
 
 const clone = o => JSON.parse(JSON.stringify(o));
-const newWorld = () => ({ users: clone(ctx.DIRECTORY), hosts: clone(ctx.HOSTS), mail: clone(ctx.MAIL || {}), devices: clone(ctx.DEVICES || {}), traced: [], outage: false });
+const newWorld = () => ({ users: clone(DIRECTORY), hosts: clone(HOSTS), mail: clone(MAIL), devices: clone(DEVICES), net: clone(NETWORK), apps: clone(APPS), traced: [], outage: false });
 
 const PRIORITIES = ['P1', 'P2', 'P3', 'P4'];
 const ANSWER_KEYS = ['error', 'when', 'restart', 'computer', 'others', 'verify'];
-const kbIds = new Set(ctx.KB.map(k => k.id));
+const kbIds = new Set(KB.map(k => k.id));
 const seen = new Set();
 let failures = 0;
 
-for (const sc of ctx.SCENARIOS) {
+for (const sc of SCENARIOS) {
   const errs = [];
   const need = (cond, msg) => { if (!cond) errs.push(msg); };
 
-  for (const f of ['id', 'title', 'category', 'priority', 'user', 'body', 'setup', 'check', 'answers', 'hint', 'lesson', 'kb']) need(sc[f] !== undefined, `missing "${f}"`);
+  for (const f of ['id', 'title', 'category', 'priority', 'user', 'body', 'setup', 'check', 'answers', 'hint', 'lesson', 'kb', 'realWorld']) need(sc[f] !== undefined, `missing "${f}"`);
   need(!seen.has(sc.id), 'duplicate id'); seen.add(sc.id);
   need(PRIORITIES.includes(sc.priority), `bad priority ${sc.priority}`);
-  need(ctx.DIRECTORY[sc.user], `unknown user ${sc.user}`);
-  (sc.targets || []).forEach(t => need(ctx.DIRECTORY[t], `unknown target ${t}`));
-  if (sc.host) need(ctx.HOSTS[sc.host] || (ctx.DEVICES && ctx.DEVICES[sc.host]), `unknown host/device ${sc.host}`);
+  need(DIRECTORY[sc.user], `unknown user ${sc.user}`);
+  (sc.targets || []).forEach(t => need(DIRECTORY[t], `unknown target ${t}`));
+  if (sc.host) need(HOSTS[sc.host] || DEVICES[sc.host], `unknown host/device ${sc.host}`);
   need(kbIds.has(sc.kb), `unknown KB article ${sc.kb}`);
   Object.keys(sc.answers || {}).forEach(k => need(ANSWER_KEYS.includes(k), `unknown answer key ${k}`));
   (sc.relevant || []).forEach(k => need(sc.answers && sc.answers[k], `relevant question "${k}" has no answer`));
-  if (sc.escalate) need(ctx.TEAMS.includes(sc.escalate), `unknown team ${sc.escalate}`);
+  if (sc.escalate) need(TEAMS.includes(sc.escalate), `unknown team ${sc.escalate}`);
   if (sc.reveal) need(sc.reveal.key && sc.reveal.text, 'reveal needs key and text');
   Object.entries(sc.answers || {}).forEach(([k, v]) => need(typeof v === 'string' || typeof v === 'function', `answer "${k}" must be text or a function`));
   Object.entries(sc.forbid || {}).forEach(([k, v]) => need(v && v.label && v.pts < 0, `forbid "${k}" needs a label and negative pts`));
@@ -73,7 +63,7 @@ for (const sc of ctx.SCENARIOS) {
   if (errs.length) { failures++; console.log(`✗ ${sc.id}\n    ${errs.join('\n    ')}`); }
 }
 
-const fixes = ctx.SCENARIOS.filter(s => !s.escalate).length;
-console.log(`\n${ctx.SCENARIOS.length} scenarios (${fixes} fix, ${ctx.SCENARIOS.length - fixes} escalate) from ${files.length} files, ${ctx.KB.length} KB articles`);
+const fixes = SCENARIOS.filter(s => !s.escalate).length;
+console.log(`\n${SCENARIOS.length} scenarios (${fixes} fix, ${SCENARIOS.length - fixes} escalate), ${KB.length} KB articles`);
 console.log(failures ? `${failures} FAILED` : 'all passed');
 process.exit(failures ? 1 : 0);
